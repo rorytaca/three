@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="javascripts/lib/three.min.js"></script>
+    <script src="javascripts/lib/Detector.js"></script>
+    <script src="javascripts/lib/stats.min.js"></script>
+
+    <script src="javascripts/objects/Water.js"></script>
+    <script src="javascripts/objects/Sky.js"></script>
+
+
+  </head>
+  <body>
+    {{{body}}}
+
+    {{#each scripts as |script|}}
+      <script type="text/javascript" src="javascripts/{{script}}" defer></script>
+    {{/each}}
+  </body>
+</html>
