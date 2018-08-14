@@ -4,6 +4,7 @@ var camera, scene, renderer, light;
 var water, sphere;
 var hemiLight, hemiLightHelper;
 var stars, starGeo;
+var shootingStars, shootingStarGeo;
 
 init();
 animate();
@@ -68,7 +69,7 @@ function init() {
     var skyTexture =  new THREE.TextureLoader().load( 'images/star3.jpg');
 
     // uniforms.topColor.value.copy( hemiLight.color );
-    scene.fog.color.copy( new THREE.Color(0x7867e0) );
+    scene.fog.color.copy(new THREE.Color(0x7867e0));
     var skyGeo = new THREE.SphereBufferGeometry( 4000, 32, 32);
     var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
     
@@ -79,105 +80,76 @@ function init() {
     sky.material.side = THREE.BackSide;
     scene.add( sky );
 
-
-    var starMat = new THREE.PointCloudMaterial({
-      color: 0x99aaff
+    var starMat = new THREE.PointsMaterial({ 
+        // color: 0x99aaff,
+        size: Math.random() * (5 - 2) + 2,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        map: generateSprite()
     });
 
     starGeo = new THREE.Geometry();
-    var x, y, z;
 
-    for (var i = 0; i < 2000; i++) {
-      x = (Math.random() * 800) - 400;
-      y = (Math.random() * 800) - 400;
-      z = (Math.random() * 800) - 400;
+    for (var i = 0; i < 12000; i++) {
+        var star = new THREE.Vector3();
+        star.x = THREE.Math.randFloatSpread(1000);
+        star.y = THREE.Math.randFloat(100,2000);
+        star.z = THREE.Math.randFloatSpread(2000);
 
-      starGeo.vertices.push(new THREE.Vector3(x, y, z));
+      starGeo.vertices.push(star);
     };
-    stars = new THREE.PointCloud(starGeo, starMat);
+    stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
 
-    // // Skybox
-    // var sky = new THREE.Sky();
-    // sky.scale.setScalar( 10000 );
-    // scene.add(sky);
 
-    // console.log(sky);
+    var shootingStarMat = new THREE.PointsMaterial({ 
+        // color: 0x99aaff,
+        size: 6,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        map: generateSprite()
+    });
 
-    // var uniforms = sky.material.uniforms;
-    // uniforms.turbidity.value = 50;
-    // uniforms.rayleigh.value = 4;
-    // uniforms.luminance.value = 1;
-    // uniforms.mieCoefficient.value = 0.005;
-    // uniforms.mieDirectionalG.value = 0.85;
+    shootingStarGeo = new THREE.Geometry();
 
-    // var parameters = {
-    //     distance: 400,
-    //     inclination: 0.49,
-    //     azimuth: 0.25
-    // };
+    for (var i = 0; i < 2500; i++) {
+        var star = new THREE.Vector3();
+        star.x = THREE.Math.randFloatSpread(1000);
+        star.y = THREE.Math.randFloat(100,600);
+        star.z = THREE.Math.randFloatSpread(2000);
+        shootingStarGeo.vertices.push(star);
+    };
 
-    // var cubeCamera = new THREE.CubeCamera( 1, 20000, 256 );
-    // cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
-
-    // function updateSun() {
-    //     var theta = Math.PI * ( parameters.inclination - 0.5 );
-    //     var phi = 2 * Math.PI * ( parameters.azimuth - 0.5 );
-    //     light.position.x = parameters.distance * Math.cos( phi );
-    //     light.position.y = parameters.distance * Math.sin( phi ) * Math.sin( theta );
-    //     light.position.z = parameters.distance * Math.sin( phi ) * Math.cos( theta );
-    //     sky.material.uniforms.sunPosition.value = light.position.copy( light.position );
-    //     water.material.uniforms.sunDirection.value.copy( light.position ).normalize();
-    //     cubeCamera.update( renderer, scene );
-    // }
-
-    // updateSun();
-    //
-    // var geometry = new THREE.IcosahedronBufferGeometry( 20, 1 );
-    // var count = geometry.attributes.position.count;
-    // var colors = [];
-    // var color = new THREE.Color();
-    // for ( var i = 0; i < count; i += 3 ) {
-    //     color.setHex( Math.random() * 0xffffff );
-    //     colors.push( color.r, color.g, color.b );
-    //     colors.push( color.r, color.g, color.b );
-    //     colors.push( color.r, color.g, color.b );
-    // }
-    // geometry.addAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
-    // var material = new THREE.MeshStandardMaterial( {
-    //     vertexColors: THREE.VertexColors,
-    //     roughness: 0.0,
-    //     flatShading: true,
-    //     envMap: cubeCamera.renderTarget.texture,
-    //     side: THREE.DoubleSide
-    // } );
-    // sphere = new THREE.Mesh( geometry, material );
-    // scene.add( sphere );
-    //
-    // controls = new THREE.OrbitControls( camera, renderer.domElement );
-    // controls.maxPolarAngle = Math.PI * 0.495;
-    // controls.target.set( 0, 10, 0 );
-    // controls.minDistance = 40.0;
-    // controls.maxDistance = 200.0;
-    // camera.lookAt( controls.target );
-    //
+    shootingStars = new THREE.Points(shootingStarGeo, shootingStarMat);
+    scene.add(shootingStars);
+    
     stats = new Stats();
     container.appendChild( stats.dom );
-    // GUI
-    // var gui = new dat.GUI();
-    // var folder = gui.addFolder( 'Sky' );
-    // folder.add( parameters, 'inclination', 0, 0.5, 0.0001 ).onChange( updateSun );
-    // folder.add( parameters, 'azimuth', 0, 1, 0.0001 ).onChange( updateSun );
-    // folder.open();
-    // var uniforms = water.material.uniforms;
-    // var folder = gui.addFolder( 'Water' );
-    // folder.add( uniforms.distortionScale, 'value', 0, 8, 0.1 ).name( 'distortionScale' );
-    // folder.add( uniforms.size, 'value', 0.1, 10, 0.1 ).name( 'size' );
-    // folder.add( uniforms.alpha, 'value', 0.9, 1, .001 ).name( 'alpha' );
-    // folder.open();
-    //
+
     window.addEventListener( 'resize', onWindowResize, false );
 }
+
+function generateSprite() {
+    var colors = ['rgba(153,170,255,1)', 'rgba(250,5,55,1)','rgba(255,255,255,1)'];
+
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    var context = canvas.getContext('2d');
+    var gradient = context.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
+    gradient.addColorStop(0, 'rgba(255,255,255,1)');
+    gradient.addColorStop(0.2, colors[Math.ceil(Math.random() * (2-0))]);
+    gradient.addColorStop(0.4, 'rgba(0,0,64,1)');
+    gradient.addColorStop(1, 'rgba(0,0,0,1)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+}
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -194,13 +166,19 @@ function render() {
     // sphere.position.y = Math.sin( time ) * 20 + 5;
     // sphere.rotation.x = time * 0.5;
     // sphere.rotation.z = time * 0.51;
-    starGeo.vertices.forEach(function(particle){
-        particle.y -= 5;
-        particle.x += Math.random() * 4;
-    // particle.add(new THREE.Vector3(particle.x, particle.y, particle.z));
+    shootingStarGeo.vertices.forEach(function(particle){
+        particle.x += 1;
+        particle.y -= 1;
+
+        // if (particle.y <= 0) {
+        //     particle.y
+        // } else {
+
+        // }
+        // particle.y = 1;
     });
 
-    starGeo.verticesNeedUpdate = true;
+    shootingStarGeo.verticesNeedUpdate = true;
 
     water.material.uniforms.time.value += .3 / 60.0;
     renderer.render( scene, camera );
