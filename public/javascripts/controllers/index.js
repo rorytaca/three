@@ -58,20 +58,15 @@ function init() {
     }; 
     var skyTexture =  new THREE.TextureLoader().load( 'images/star3.jpg');
 
-    // uniforms.topColor.value.copy( hemiLight.color );
     scene.fog.color.copy(new THREE.Color(0x7867e0));
     var skyGeo = new THREE.SphereBufferGeometry( 4000, 32, 32);
     var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
     
-    // var skyMat = new THREE.MeshPhongMaterial({ 
-    //     map: skyTexture,
-    // });
     var sky = new THREE.Mesh( skyGeo, skyMat );
     sky.material.side = THREE.BackSide;
     scene.add( sky );
 
     var starMat = new THREE.PointsMaterial({ 
-        // color: 0x99aaff,
         size: Math.random() * (5 - 2) + 2,
         transparent: true,
         blending: THREE.AdditiveBlending,
@@ -114,15 +109,13 @@ function init() {
     scene.add(shootingStars);
     
     stats = new Stats();
-    container.appendChild( stats.dom );
+    // container.appendChild( stats.dom );
 
     window.addEventListener( 'resize', onWindowResize, false );
 }
 
 function generateSprite() {
-    var colors = ['rgba(153,170,255,1)', 'rgba(250,5,55,1)','rgba(255,255,255,1)'];
-
-
+    // var colors = ['rgba(153,170,255,1)', 'rgba(250,5,55,1)','rgba(255,255,255,1)'];
     var canvas = document.createElement('canvas');
     canvas.width = 32;
     canvas.height = 32;
@@ -152,10 +145,6 @@ function animate() {
 }
 function render() {
     var time = performance.now() * 0.001;
-
-    // sphere.position.y = Math.sin( time ) * 20 + 5;
-    // sphere.rotation.x = time * 0.5;
-    // sphere.rotation.z = time * 0.51;
     shootingStarGeo.vertices.forEach(function(particle){
         particle.x += 1/4;
         particle.y += 1/9;
@@ -166,17 +155,9 @@ function render() {
             particle.x = THREE.Math.randFloatSpread(1000);
             particle.z = THREE.Math.randFloat(-500,000);
         }
-        // particle.y = 1;
     });
 
     shootingStarGeo.verticesNeedUpdate = true;
-
-    // if (!waterRotation && water.rotation.x >= -1.5707963267948966) {
-    //   water.rotation.x  -= .02;
-    // } 
-    // if (waterRotation && water.rotation.x <= -0.7853981633974483) {
-    //   water.rotation.x += .02;
-    // } 
 
     if (cameraState == "up" && camera.rotation.x <= Math.PI / 3) {
        camera.rotation.x  += .035;
@@ -190,17 +171,11 @@ function render() {
             var dir = camera.rotation.x > 0 ? -1 : 1;
             camera.rotation.x += .035*dir; 
         }
-        if (Math.abs(camera.rotation.x) <= .2) camera.rotation.x = 0;
+        if (Math.abs(camera.rotation.x) <= .035) camera.rotation.x = 0;
     } 
     if (cameraState == "down" && water.rotation.x <= - Math.PI / 4) {
        water.rotation.x += .02;
     } 
-    // if (cameraState == "middle" && camera.rotation.x <= Math.PI / 2) {
-    //   camera.rotation.x += .02;
-    // } 
-    //     if (cameraState == "down" && camera.rotation.x <= Math.PI / 2) {
-    //   camera.rotation.x += .02;
-    // } 
 
     water.material.uniforms.time.value += .3 / 60.0;
     renderer.render( scene, camera );
