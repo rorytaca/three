@@ -1,16 +1,15 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 var container, stats;
-var camera, scene, renderer, light;
-var water, sphere;
-var hemiLight, hemiLightHelper;
-var stars, starGeo;
-var shootingStars, shootingStarGeo;
+var camera, scene, renderer;
+var water, stars, starGeo, shootingStars, shootingStarGeo;
+
+var cameraState = "middle", cameraLock = false;
 
 init();
 animate();
 
 function init() {
-    container = document.getElementById( 'three-js-mount' );
+    container = document.getElementById('three-js-mount');
     //
     renderer = new THREE.WebGLRenderer();
     renderer.setPixelRatio( window.devicePixelRatio );
@@ -27,7 +26,7 @@ function init() {
     light = new THREE.DirectionalLight(0xffffff,0.8);
     scene.add(light);
     // Water
-    var waterGeometry = new THREE.PlaneBufferGeometry(10000,10000);
+    var waterGeometry = new THREE.PlaneBufferGeometry(5000,5000);
     water = new THREE.Water(
         waterGeometry,
         {
@@ -47,15 +46,6 @@ function init() {
 
     water.rotation.x = - Math.PI / 2;
     scene.add(water);
-
-    // LIGHTS
-    hemiLight = new THREE.HemisphereLight( 0x33aaff, 0x99aaff, 0.6 );
-    hemiLight.color.setHSL( 0.6, 1, 0.6 );
-    hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-    hemiLight.position.set( 0, 50, 0 );
-    scene.add(hemiLight);
-    // hemiLightHelper = new THREE.HemisphereLightHelper( hemiLight, 10 );
-    // scene.add( hemiLightHelper );
 
     // SKYDOME
     var vertexShader = document.getElementById('vertexShader').textContent;
@@ -90,7 +80,7 @@ function init() {
 
     starGeo = new THREE.Geometry();
 
-    for (var i = 0; i < 12000; i++) {
+    for (var i = 0; i < 5000; i++) {
         var star = new THREE.Vector3();
         star.x = THREE.Math.randFloatSpread(1000);
         star.y = THREE.Math.randFloat(100,2000);
@@ -104,7 +94,7 @@ function init() {
 
     var shootingStarMat = new THREE.PointsMaterial({ 
         // color: 0x99aaff,
-        size: 6,
+        size: Math.random() * (4 - 2) + 2,
         transparent: true,
         blending: THREE.AdditiveBlending,
         map: generateSprite()
@@ -112,11 +102,11 @@ function init() {
 
     shootingStarGeo = new THREE.Geometry();
 
-    for (var i = 0; i < 2500; i++) {
+    for (var i = 0; i < 1250; i++) {
         var star = new THREE.Vector3();
         star.x = THREE.Math.randFloatSpread(1000);
-        star.y = THREE.Math.randFloat(100,600);
-        star.z = THREE.Math.randFloatSpread(2000);
+        star.y = THREE.Math.randFloat(50,600);
+        star.z = THREE.Math.randFloat(-500,000);
         shootingStarGeo.vertices.push(star);
     };
 
@@ -139,7 +129,7 @@ function generateSprite() {
     var context = canvas.getContext('2d');
     var gradient = context.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2);
     gradient.addColorStop(0, 'rgba(255,255,255,1)');
-    gradient.addColorStop(0.2, colors[Math.ceil(Math.random() * (2-0))]);
+    gradient.addColorStop(0.2, 'rgba(250,5,55,1)');
     gradient.addColorStop(0.4, 'rgba(0,0,64,1)');
     gradient.addColorStop(1, 'rgba(0,0,0,1)');
     context.fillStyle = gradient;
@@ -167,19 +157,92 @@ function render() {
     // sphere.rotation.x = time * 0.5;
     // sphere.rotation.z = time * 0.51;
     shootingStarGeo.vertices.forEach(function(particle){
-        particle.x += 1;
-        particle.y -= 1;
+        particle.x += 1/4;
+        particle.y += 1/9;
+        particle.z += 1/4;
 
-        // if (particle.y <= 0) {
-        //     particle.y
-        // } else {
-
-        // }
+        if (particle.y > 600) {
+            particle.y = 33;
+            particle.x = THREE.Math.randFloatSpread(1000);
+            particle.z = THREE.Math.randFloat(-500,000);
+        }
         // particle.y = 1;
     });
 
     shootingStarGeo.verticesNeedUpdate = true;
 
+    // if (!waterRotation && water.rotation.x >= -1.5707963267948966) {
+    //   water.rotation.x  -= .02;
+    // } 
+    // if (waterRotation && water.rotation.x <= -0.7853981633974483) {
+    //   water.rotation.x += .02;
+    // } 
+
+    if (cameraState == "up" && camera.rotation.x <= Math.PI / 3) {
+       camera.rotation.x  += .035;
+       water.rotation.x = - Math.PI / 2;
+    }
+    if (cameraState == "middle") {
+        if (water.rotation.x >= - Math.PI / 2) {
+            water.rotation.x -= .02;
+        }
+        if (camera.rotation.x != 0) {
+            var dir = camera.rotation.x > 0 ? -1 : 1;
+            camera.rotation.x += .035*dir; 
+        }
+        if (Math.abs(camera.rotation.x) <= .2) camera.rotation.x = 0;
+    } 
+    if (cameraState == "down" && water.rotation.x <= - Math.PI / 4) {
+       water.rotation.x += .02;
+    } 
+    // if (cameraState == "middle" && camera.rotation.x <= Math.PI / 2) {
+    //   camera.rotation.x += .02;
+    // } 
+    //     if (cameraState == "down" && camera.rotation.x <= Math.PI / 2) {
+    //   camera.rotation.x += .02;
+    // } 
+
     water.material.uniforms.time.value += .3 / 60.0;
     renderer.render( scene, camera );
 }
+
+window.addEventListener('wheel', function(e) {
+  if (e.deltaY < 0) {
+    if (!cameraLock) {
+        cameraLock = true;
+        switch(cameraState) {
+            case "up":
+                cameraState = "up";
+                break;
+            case "middle":
+                cameraState = "up";
+                break;
+            case "down":
+                cameraState = "middle";
+                break;
+        }
+        setTimeout(function() {
+            cameraLock = false;
+        }, 1000);
+    }
+  }
+  if (e.deltaY > 0) {
+    if (!cameraLock) {
+        cameraLock = true;
+        switch(cameraState) {
+            case "up":
+                cameraState = "middle";
+                break;
+            case "middle":
+                cameraState = "down";
+                break;
+            case "down":
+                cameraState = "down";
+                break;
+        }
+        setTimeout(function() {
+            cameraLock = false;
+        }, 1000);
+    }
+  }
+});
